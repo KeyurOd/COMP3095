@@ -29,7 +29,6 @@ public class ProductServiceImpl implements ProductService{
                 .price(productRequest.price())
                 .build();
 
-        // persist a product
         productRepository.save(product);
         log.info("Product {} is saved", product.getId());
 
@@ -68,11 +67,9 @@ public class ProductServiceImpl implements ProductService{
             product.setPrice(productRequest.price());
             product.setName(productRequest.name());
             return productRepository.save(product).getId();
-
         }
 
         return productId;
-
     }
 
     @Override

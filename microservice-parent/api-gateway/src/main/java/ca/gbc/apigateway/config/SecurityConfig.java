@@ -29,7 +29,6 @@ public class SecurityConfig {
 
 
 
-
         log.info("Initializing Security Filter Chain...");
 
         return httpSecurity
