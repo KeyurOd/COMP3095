@@ -73,7 +73,7 @@ public class Routes {
     @Bean
     public RouterFunction<ServerResponse> inventoryServiceRoute(){
 
-        log.info("Initializing inventory service route with URL: {}", inventoryServiceUrl);
+        log.info("Initializing order service route with URL: {}", inventoryServiceUrl);
 
         return GatewayRouterFunctions.route("inventory_service")
                 .route(RequestPredicates.path("/api/inventory"), request -> {

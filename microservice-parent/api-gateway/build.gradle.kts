@@ -27,8 +27,10 @@ extra["springCloudVersion"] = "2023.0.3"
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-gateway-mvc")
+    // Week11
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    //Week 12
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
     testImplementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
     compileOnly("org.projectlombok:lombok")

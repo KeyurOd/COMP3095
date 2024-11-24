@@ -15,7 +15,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class OrderServiceApplicationTests {
 
-    // Using Testcontainers to spin up a PostgreSQL container needed for our OrderService
     @ServiceConnection
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest");
 
@@ -34,7 +33,7 @@ class OrderServiceApplicationTests {
 
     @Test
     void placeOrderTest() {
-        // JSON payload to place an order
+
         String submitOrderJson = """
                {
                     "skuCode": "samsung_tv_2024",
@@ -55,6 +54,7 @@ class OrderServiceApplicationTests {
                 .statusCode(201)
                 .extract()
                 .body().asString();
+
 
         assertThat(responseBodyString, Matchers.is("Order Placed Successfully"));
     }
