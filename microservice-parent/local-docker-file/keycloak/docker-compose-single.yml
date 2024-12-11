@@ -2,8 +2,8 @@ version: '3.9'
 
 services:
 
-  keycloak:
-    container_name: keycloak
+  keycloak-week12:
+    container_name: keycloak-week12
     hostname: keycloak
     image: quay.io/keycloak/keycloak:24.0.1
     command: ["start-dev", "--import-realm"]
@@ -18,19 +18,19 @@ services:
       ROOT_LOGLEVEL: DEBUG
       JBOSS_LOG_MANAGER_ROOT_LOGGER: DEBUG, stdout, FILE
     ports:
-      - "8081:8080" // try to take the official default port 8080, it wasn't available for me so I changed it to 8081.
+      - "8080:8080"  #try to take the official default port 8080, it wasn't available for me so I changed it to 8081.
     volumes:
       - ./realms/:/opt/keycloak/data/import
     depends_on:
-      - postgres-keycloak
+      - postgres-keycloak-1
     networks:
       - spring
 
-  postgres-keycloak:
+  postgres-keycloak-1:
     image: postgres
     ports:
       - "5431:5432"
-    container_name: postgres-keycloak
+    container_name: postgres-keycloak-1
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=password
@@ -41,6 +41,19 @@ services:
     networks:
       - spring
 
+  api-gateway-week12:
+    image: api-gateway
+    ports:
+      - "9000:9000"
+    build:
+      context: ./api-gateway
+      dockerfile: ./Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATION_JSON={"logging":{"level":{"root":"INFO","ca.gbc.apigateway":"DEBUG"}}}:
+    container_name: api-gateway-week12
+    networks:
+      - spring
 
   #pgadmin:
   #  image: dpage/pgadmin4

@@ -39,7 +39,15 @@ public class ProductController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ProductResponse> getAllProducts(){
+        // Week 13
+        /*try{
+            Thread.sleep(5000);
+        }catch (InterruptedException e){
+            throw new RuntimeException(e);
+        }*/
+
         return productService.getAllProducts();
+
     }
 
     //http://localhost:8083/api/product/fsdagadfdfg

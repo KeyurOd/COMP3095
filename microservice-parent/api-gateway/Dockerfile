@@ -18,6 +18,6 @@ RUN mkdir /app
 
 COPY --from=builder /home/gradle/src/build/libs/*.jar /app/api-gateway.jar
 
-EXPOSE 9000
+EXPOSE 9001
 
 ENTRYPOINT ["java", "-jar", "/app/api-gateway.jar"]

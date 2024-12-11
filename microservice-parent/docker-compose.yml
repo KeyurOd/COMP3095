@@ -1,6 +1,4 @@
 #---------------------------------
-#Keyur Odedara
-#
 # 1. docker-compose -p microservices-comp3095-ecommerce -f docker-compose.yml up -d
 #  -- This command will start containers in detached mode without rebuilding the image (if they already exist)
 #
@@ -9,7 +7,70 @@
 #---------------------------------
 version: '3.9'
 
+# 5432 is the default port postgres
+# 5433 is set for postgres-inventory
+
+# Define services (containers) that will run as part of the microservice stack.
 services:
+
+  notification-service:
+    image: notification-service
+    ports:
+      - "8089:8089"
+    build:
+      context: ./notification-service
+      dockerfile: ./Dockerfile
+    container_name: notification-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - spring
+
+
+  zookeeper:
+    container_name: zookeeper
+    hostname: zookeeper
+    image: confluentinc/cp-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - spring
+
+  broker:
+    container_name: broker
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      # External connection(outside docker) use 9092 and your host.docker.internal
+      - "9092:9092"
+      # Internal connections (inside docker) and the container host name (broker)
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT, PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092, PLAINTEXT_HOST://host.docker.internal:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - spring
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui
+    ports:
+      - "8086:8080"
+    environment:
+      KAFKA_CLUSTER_NAME: local
+      KAFKA_CLUSTERS_BOOTSTRAPSERVERS: broker:29092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    depends_on:
+      - broker
+    networks:
+      - spring
 
   keycloak:
     container_name: keycloak
@@ -27,7 +88,7 @@ services:
       ROOT_LOGLEVEL: DEBUG
       JBOSS_LOG_MANAGER_ROOT_LOGGER: DEBUG, stdout, FILE
     ports:
-      - "8080:8080"
+      - "8080:8080"  #try to take the official default port 8080
     volumes:
       - ./local-docker-file/keycloak/realms/:/opt/keycloak/data/import
     depends_on:
@@ -38,7 +99,7 @@ services:
   api-gateway:
     image: api-gateway
     ports:
-      - "9000:9000"
+      - "9001:9001"
     build:
       context: ./api-gateway
       dockerfile: ./Dockerfile
@@ -54,8 +115,8 @@ services:
     ports:
       - "8087:8087"
     build:
-      context: ./inventory-service
-      dockerfile: ./Dockerfile
+      context: ./inventory-service  # The directory where the Dockerfile resides
+      dockerfile: ./Dockerfile    # Specify the Dockerfile for use to build image
     container_name: inventory-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -98,7 +159,7 @@ services:
       - POSTGRES_DB=keycloak
       - PGDATA=/data/postgres
     volumes:
-      - ./data/postgres/keycloak:/var/lib/postgresql/data
+      - ./data/postgres/keycloak:/var/lib/postgresql/data # The database will persist data here on the host machine.
     networks:
       - spring
 
@@ -113,12 +174,12 @@ services:
       - POSTGRES_DB=inventory-service
       - PGDATA= /data/postgres
     volumes:
-      - ./data/postgres/inventory:/var/lib/postgresql/data
+      - ./data/postgres/inventory:/var/lib/postgresql/data # The database will persist data here on the host machine.
       - ./init/postgres/inventory/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - spring
 
-
+# This is my postgres database for order-service
   postgres:
     image: postgres
     ports:
@@ -130,7 +191,7 @@ services:
       PGDATA: /data/postgres
       POSTGRES_DB: order-service
     volumes:
-      - ./data/postgres/order:/var/lib/postgresql/data
+      - ./data/postgres/order:/var/lib/postgresql/data # The database will persist data here on the host machine.
       - ./init/postgres/order/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - spring
@@ -153,11 +214,11 @@ services:
     ports:
       - "8084:8084"
     build:
-      context: ./product-service
-      dockerfile: ./Dockerfile
+      context: ./product-service  # The directory where the Dockerfile resides
+      dockerfile: ./Dockerfile    # Specify the Dockerfile for use to build image
     container_name: product-service
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker # This tells Spring Boot to use the "docker" profile
     depends_on:
       - mongodb
     networks:
@@ -172,15 +233,17 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
     volumes:
-      - ./data/mongo/products:/data/db
-      - ./init/mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./data/mongo/products:/data/db # The database will persist data here on the host machine.
+      - ./init/mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro #Initialize mongodb with data
+    #command: mongod --auth
+    #restart: unless-stopped
     networks:
       - spring
 
   mongo-express:
     image: mongo-express
     ports:
-      - "8079:8081"
+      - "8081:8081"
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
       - ME_CONFIG_MONGODB_ADMINPASSWORD=password
@@ -191,7 +254,7 @@ services:
     networks:
       - spring
 
-
+#Optional volumes section for persisting data
 volumes:
   mongo-db:
     driver: local

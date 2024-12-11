@@ -12,8 +12,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class InventoryServiceApplicationTests {
 
+    // Using Testcontainers to spin up a PostgreSQL container  needed for our InventoryService
     @ServiceConnection
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest");
+          //  .withDatabaseName("inventorydb")
+            //.withUsername("admin")
+            //.withPassword("password");
 
     @LocalServerPort
     private Integer port;
@@ -46,5 +50,23 @@ class InventoryServiceApplicationTests {
                 .statusCode(200)
                 .body(Matchers.equalTo("true")); // Adjust if needed based on actual response format
     }
+
+        /*@Test
+    void checkInventoryOutOfStockTest() {
+        // BDD-style test for the isInStock endpoint when an item is out of stock
+        String skuCode = "SKU002";
+        int quantity = 10;
+
+        RestAssured.given()
+                .contentType("application/json")
+                .queryParam("skuCode", skuCode)
+                .queryParam("quantity", quantity)
+                .when()
+                .get("/api/inventory")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body(Matchers.equalTo("false")); // Adjust based on expected response
+    }*/
 
 }
